@@ -1,0 +1,74 @@
+=========================
+Router R1 Configuration
+=========================
+
+enable
+configure terminal
+
+hostname R1
+
+interface FastEthernet0/0
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+
+interface Serial0/0/0
+ ip address 10.10.10.1 255.255.255.252
+ clock rate 64000
+ no shutdown
+
+exit
+
+ip route 192.168.20.0 255.255.255.0 10.10.10.2
+
+end
+write memory
+
+
+=========================
+Router R2 Configuration
+=========================
+
+enable
+configure terminal
+
+hostname R2
+
+interface FastEthernet0/0
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+
+interface Serial0/0/0
+ ip address 10.10.10.2 255.255.255.252
+ no shutdown
+
+exit
+
+ip route 192.168.10.0 255.255.255.0 10.10.10.1
+
+end
+write memory
+
+
+
+PC1
+IP Address: 192.168.10.2
+Subnet Mask: 255.255.255.0
+Default Gateway: 192.168.10.1
+
+
+PC2
+IP Address: 192.168.10.3
+Subnet Mask: 255.255.255.0
+Default Gateway: 192.168.10.1
+
+
+PC3
+IP Address: 192.168.20.2
+Subnet Mask: 255.255.255.0
+Default Gateway: 192.168.20.1
+
+
+PC4
+IP Address: 192.168.20.3
+Subnet Mask: 255.255.255.0
+Default Gateway: 192.168.20.1
