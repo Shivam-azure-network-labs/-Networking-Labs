@@ -1,0 +1,152 @@
+==============================
+Router R1 Configuration
+==============================
+
+enable
+configure terminal
+
+hostname R1
+
+interface g0/0
+no shutdown
+
+interface g0/0.10
+encapsulation dot1Q 10
+ip address 10.10.10.1 255.255.255.0
+
+interface g0/0.20
+encapsulation dot1Q 20
+ip address 10.10.20.1 255.255.255.0
+
+interface g0/0.30
+encapsulation dot1Q 30
+ip address 10.10.30.1 255.255.255.0
+
+interface g0/0.40
+encapsulation dot1Q 40
+ip address 10.10.40.1 255.255.255.0
+
+
+==============================
+DHCP Configuration
+==============================
+
+ip dhcp excluded-address 10.10.10.1
+ip dhcp excluded-address 10.10.20.1
+ip dhcp excluded-address 10.10.30.1
+ip dhcp excluded-address 10.10.40.1
+
+ip dhcp pool HR
+network 10.10.10.0 255.255.255.0
+default-router 10.10.10.1
+dns-server 8.8.8.8
+
+ip dhcp pool IT
+network 10.10.20.0 255.255.255.0
+default-router 10.10.20.1
+dns-server 8.8.8.8
+
+ip dhcp pool SALES
+network 10.10.30.0 255.255.255.0
+default-router 10.10.30.1
+dns-server 8.8.8.8
+
+ip dhcp pool CCTV
+network 10.10.40.0 255.255.255.0
+default-router 10.10.40.1
+dns-server 8.8.8.8
+
+
+==============================
+ACL Security (CCTV Restriction)
+==============================
+
+access-list 110 deny ip 10.10.40.0 0.0.0.255 10.10.10.0 0.0.0.255
+access-list 110 deny ip 10.10.40.0 0.0.0.255 10.10.20.0 0.0.0.255
+access-list 110 deny ip 10.10.40.0 0.0.0.255 10.10.30.0 0.0.0.255
+access-list 110 permit ip any any
+
+interface g0/0.40
+ip access-group 110 in
+
+end
+write memory
+
+
+==============================
+Switch S1 Configuration
+==============================
+
+enable
+configure terminal
+
+hostname S1
+
+vlan 10
+name HR
+
+vlan 20
+name IT
+
+vlan 30
+name SALES
+
+vlan 40
+name CCTV
+
+
+interface fa0/1
+switchport mode access
+switchport access vlan 10
+
+interface fa0/2
+switchport mode access
+switchport access vlan 20
+
+interface fa0/3
+switchport mode access
+switchport access vlan 30
+
+interface fa0/4
+switchport mode access
+switchport access vlan 40
+
+
+interface g0/1
+switchport mode trunk
+
+end
+write memory
+
+
+==============================
+Switch S2 Configuration
+==============================
+
+enable
+configure terminal
+
+hostname S2
+
+vlan 10
+vlan 20
+vlan 30
+vlan 40
+
+interface g0/1
+switchport mode trunk
+
+end
+write memory
+
+
+==============================
+PC Configuration
+==============================
+
+All PCs are configured to obtain IP automatically via DHCP.
+
+PC-HR → DHCP  
+PC-IT → DHCP  
+PC-SALES → DHCP  
+PC-CCTV → DHCP
