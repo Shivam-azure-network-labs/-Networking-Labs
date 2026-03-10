@@ -104,11 +104,7 @@ traceroute <destination-ip>
 
 ---
 
-## 🖼 Lab Topology
 
-Topology designed and tested using **Cisco Packet Tracer**.
-
----
 
 ## 🧑‍💻 Author
 
