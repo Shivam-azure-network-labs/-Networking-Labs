@@ -1,0 +1,269 @@
+==============================
+MULTI AREA OSPF CONFIGURATION
+==============================
+
+OSPF Process ID: 1
+
+
+--------------------------------
+BACKBONE AREA (AREA 0)
+--------------------------------
+
+Backbone Network
+
+192.168.1.0/24
+
+
+CORE BACKBONE ROUTER
+
+hostname CORE
+
+interface GigabitEthernet0/0
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ router-id 1.1.1.1
+ network 192.168.1.0 0.0.0.255 area 0
+
+
+
+--------------------------------
+AREA 1 CONFIGURATION
+Branch Office
+--------------------------------
+
+Networks
+
+10.1.2.0/24  (Sales)
+10.1.3.0/24  (HR)
+10.1.4.0/24  (IT)
+
+Serial Links
+
+10.1.1.0/30
+10.1.1.4/30
+10.1.1.8/30
+
+
+BRANCH AREA BORDER ROUTER (ABR)
+
+hostname BRANCH-OFFICE
+
+interface GigabitEthernet0/2
+ ip address 192.168.1.2 255.255.255.0
+ no shutdown
+
+interface Serial0/0/0
+ ip address 10.1.1.2 255.255.255.252
+ no shutdown
+
+interface Serial0/0/1
+ ip address 10.1.1.6 255.255.255.252
+ no shutdown
+
+interface Serial0/1/0
+ ip address 10.1.1.10 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 2.2.2.2
+ network 192.168.1.0 0.0.0.255 area 0
+ network 10.1.1.0 0.0.0.3 area 1
+ network 10.1.1.4 0.0.0.3 area 1
+ network 10.1.1.8 0.0.0.3 area 1
+
+
+
+SALES ROUTER
+
+hostname R-SALES
+
+interface GigabitEthernet0/0
+ ip address 10.1.2.1 255.255.255.0
+ no shutdown
+
+interface Serial0/0/0
+ ip address 10.1.1.1 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 10.1.2.1
+ network 10.1.2.0 0.0.0.255 area 1
+ network 10.1.1.0 0.0.0.3 area 1
+
+
+
+HR ROUTER
+
+hostname R-HR
+
+interface GigabitEthernet0/0
+ ip address 10.1.3.1 255.255.255.0
+ no shutdown
+
+interface Serial0/0/1
+ ip address 10.1.1.5 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 10.1.3.1
+ network 10.1.3.0 0.0.0.255 area 1
+ network 10.1.1.4 0.0.0.3 area 1
+
+
+
+IT ROUTER
+
+hostname R-IT
+
+interface GigabitEthernet0/0
+ ip address 10.1.4.1 255.255.255.0
+ no shutdown
+
+interface Serial0/1/0
+ ip address 10.1.1.9 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 10.1.4.1
+ network 10.1.4.0 0.0.0.255 area 1
+ network 10.1.1.8 0.0.0.3 area 1
+
+
+
+--------------------------------
+AREA 2 CONFIGURATION
+Head Office
+--------------------------------
+
+Networks
+
+172.16.1.0/24 (Finance)
+172.16.2.0/24 (Admin)
+172.16.3.0/24 (Support)
+
+Serial Links
+
+10.2.1.0/30
+10.2.1.4/30
+10.2.1.8/30
+
+
+HEAD OFFICE AREA BORDER ROUTER (ABR)
+
+hostname HEAD-OFFICE
+
+interface GigabitEthernet0/2
+ ip address 192.168.1.3 255.255.255.0
+ no shutdown
+
+interface Serial0/0/0
+ ip address 10.2.1.1 255.255.255.252
+ no shutdown
+
+interface Serial0/0/1
+ ip address 10.2.1.5 255.255.255.252
+ no shutdown
+
+interface Serial0/1/0
+ ip address 10.2.1.9 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 3.3.3.3
+ network 192.168.1.0 0.0.0.255 area 0
+ network 10.2.1.0 0.0.0.3 area 2
+ network 10.2.1.4 0.0.0.3 area 2
+ network 10.2.1.8 0.0.0.3 area 2
+
+
+
+FINANCE ROUTER
+
+hostname R-FINANCE
+
+interface GigabitEthernet0/0
+ ip address 172.16.1.1 255.255.255.0
+ no shutdown
+
+interface Serial0/0/0
+ ip address 10.2.1.2 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 172.16.1.1
+ network 172.16.1.0 0.0.0.255 area 2
+ network 10.2.1.0 0.0.0.3 area 2
+
+
+
+ADMIN ROUTER
+
+hostname R-ADMIN
+
+interface GigabitEthernet0/0
+ ip address 172.16.2.1 255.255.255.0
+ no shutdown
+
+interface Serial0/0/1
+ ip address 10.2.1.6 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 172.16.2.1
+ network 172.16.2.0 0.0.0.255 area 2
+ network 10.2.1.4 0.0.0.3 area 2
+
+
+
+SUPPORT ROUTER
+
+hostname R-SUPPORT
+
+interface GigabitEthernet0/0
+ ip address 172.16.3.1 255.255.255.0
+ no shutdown
+
+interface Serial0/1/0
+ ip address 10.2.1.10 255.255.255.252
+ no shutdown
+
+router ospf 1
+ router-id 172.16.3.1
+ network 172.16.3.0 0.0.0.255 area 2
+ network 10.2.1.8 0.0.0.3 area 2
+
+
+
+--------------------------------
+VERIFICATION COMMANDS
+--------------------------------
+
+show ip ospf neighbor
+
+show ip ospf interface brief
+
+show ip route
+
+ping <destination-ip>
+
+tracert <destination-ip>
+
+
+
+--------------------------------
+EXPECTED RESULT
+--------------------------------
+
+OSPF neighbors should reach FULL state
+
+Routing table should contain:
+
+O routes (Intra-Area)
+
+O IA routes (Inter-Area)
+
+End-to-end connectivity between:
+
+Area 1 ↔ Area 2
