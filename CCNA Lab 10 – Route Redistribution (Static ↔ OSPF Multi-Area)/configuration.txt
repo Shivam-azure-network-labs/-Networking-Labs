@@ -1,0 +1,175 @@
+==============================================
+HYBRID ROUTING CONFIGURATION
+STATIC + OSPF REDISTRIBUTION
+==============================================
+
+OSPF PROCESS ID: 1
+
+
+--------------------------------
+ISP ROUTER
+--------------------------------
+
+hostname ISP
+
+interface Serial0/0/0
+ ip address 100.0.0.1 255.255.255.252
+ no shutdown
+
+
+--------------------------------
+HEADQUARTER ROUTER (CORE)
+--------------------------------
+
+hostname HQ
+
+interface Serial0/0/0
+ ip address 100.0.0.2 255.255.255.252
+ no shutdown
+
+interface GigabitEthernet0/0
+ ip address 10.0.0.1 255.255.255.252
+ no shutdown
+
+interface GigabitEthernet0/1
+ ip address 10.0.2.1 255.255.255.252
+ no shutdown
+
+
+router ospf 1
+ router-id 1.1.1.1
+
+ network 10.0.0.0 0.0.0.3 area 0
+ network 10.0.2.0 0.0.0.3 area 1
+
+ redistribute static subnets
+
+
+ip route 0.0.0.0 0.0.0.0 100.0.0.1
+
+
+--------------------------------
+BRANCH ROUTER
+--------------------------------
+
+hostname BRANCH
+
+interface GigabitEthernet0/1
+ ip address 10.0.0.2 255.255.255.252
+ no shutdown
+
+interface GigabitEthernet0/0
+ ip address 192.168.50.1 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/2
+ ip address 192.168.60.1 255.255.255.0
+ no shutdown
+
+
+ip route 192.168.10.0 255.255.255.0 192.168.50.2
+ip route 192.168.20.0 255.255.255.0 192.168.60.2
+
+
+router ospf 1
+ network 10.0.0.0 0.0.0.3 area 0
+
+
+
+--------------------------------
+SALES ROUTER
+--------------------------------
+
+hostname SALES
+
+interface GigabitEthernet0/0
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/1
+ ip address 192.168.50.2 255.255.255.0
+ no shutdown
+
+
+ip route 0.0.0.0 0.0.0.0 192.168.50.1
+
+
+
+--------------------------------
+SUPPORT ROUTER
+--------------------------------
+
+hostname SUPPORT
+
+interface GigabitEthernet0/0
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/1
+ ip address 192.168.60.2 255.255.255.0
+ no shutdown
+
+
+ip route 0.0.0.0 0.0.0.0 192.168.60.1
+
+
+
+--------------------------------
+REMOTE OFFICE ROUTER
+--------------------------------
+
+hostname REMOTE
+
+interface GigabitEthernet0/1
+ ip address 10.0.2.2 255.255.255.252
+ no shutdown
+
+interface GigabitEthernet0/0
+ ip address 192.168.70.1 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/2
+ ip address 192.168.80.1 255.255.255.0
+ no shutdown
+
+
+router ospf 1
+ network 10.0.2.0 0.0.0.3 area 1
+ network 192.168.70.0 0.0.0.255 area 1
+ network 192.168.80.0 0.0.0.255 area 1
+
+
+
+--------------------------------
+VERIFICATION COMMANDS
+--------------------------------
+
+show ip route
+
+show ip ospf neighbor
+
+show ip protocols
+
+show ip ospf database
+
+ping <destination-ip>
+
+traceroute <destination-ip>
+
+
+
+--------------------------------
+EXPECTED RESULT
+--------------------------------
+
+OSPF neighbors should reach FULL state
+
+Routing table should show:
+
+O routes (OSPF intra area)
+
+O IA routes (Inter-area)
+
+O E2 routes (Redistributed static)
+
+S* default route pointing to ISP
