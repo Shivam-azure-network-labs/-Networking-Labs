@@ -1,11 +1,22 @@
-# CCNA Mega Lab — Hybrid Routing + VLAN Design (OSPF + Static Default Route)
 
-## 📌 Overview
 
-This project is a large-scale CCNA practice lab built in Cisco Packet Tracer.
-The topology simulates a small enterprise network with multiple departments, VLAN segmentation, dynamic routing, and an ISP connection.
+# CCNA Enterprise Mega Lab
 
-The design combines **OSPF dynamic routing for internal networks** and **static default routing for internet access**, which reflects real enterprise network architecture.
+### Hybrid Routing Design (OSPF + Static + Default Route)
+
+## 📌 Project Overview
+
+This project simulates a **small enterprise network architecture** using Cisco Packet Tracer.
+The topology contains multiple routers, departmental LANs, VLAN segmentation, and an ISP connection.
+
+The goal of this lab was to implement a **hybrid routing architecture** combining:
+
+* **OSPF dynamic routing** for internal core networks
+* **Static routing** for branch networks
+* **Default route** for internet connectivity through ISP
+
+This design reflects how real enterprise networks maintain **dynamic adaptability internally while keeping external routing stable**.
+
 
 ---
 
@@ -15,140 +26,165 @@ The design combines **OSPF dynamic routing for internal networks** and **static 
 
 ---
 
-## 🧠 Network Features
 
-* Multi-router enterprise topology
-* OSPF dynamic routing between internal routers
-* Static default route toward ISP
-* VLAN segmentation for departments
-* Inter-VLAN routing
-* End-to-end connectivity verification
-* Hybrid routing design (Dynamic + Static)
+## 🌐 Network Addressing Plan
+
+### WAN Links
+
+| Link           | Network      |
+| -------------- | ------------ |
+| HQ ↔ CORE-A    | 10.0.1.0/30  |
+| HQ ↔ CORE-B    | 10.0.2.0/30  |
+| CORE-A ↔ SALES | 10.0.3.0/30  |
+| SALES ↔ HR     | 10.0.4.0/30  |
+| SALES ↔ IT     | 10.0.5.0/30  |
+| CORE-B ↔ R&D   | 10.0.6.0/30  |
+| R&D ↔ FINANCE  | 10.0.7.0/30  |
+| R&D ↔ SUPPORT  | 10.0.8.0/30  |
+| HQ ↔ ISP       | 200.0.0.0/30 |
 
 ---
 
-## 🌐 Network Architecture
+## 🏢 Department Networks
 
-Internal networks communicate using **OSPF (Open Shortest Path First)**.
+| Department | Network         | Gateway      |
+| ---------- | --------------- | ------------ |
+| HR         | 192.168.10.0/24 | 192.168.10.1 |
+| SALES      | 192.168.20.0/24 | 192.168.20.1 |
+| IT         | 192.168.30.0/24 | 192.168.30.1 |
+| FINANCE    | 192.168.40.0/24 | 192.168.40.1 |
+| R&D        | 192.168.50.0/24 | 192.168.50.1 |
+| SUPPORT    | 192.168.60.0/24 | 192.168.60.1 |
 
-All external traffic is routed toward the **ISP router** using a **static default route**.
+---
+
+## ⚙️ Routing Strategy
+
+### 1️⃣ Internal Core Routing
+
+OSPF is used between:
+
+* HEADQUARTER
+* CORE-A
+* CORE-B
+
+This allows automatic route learning and scalability.
+
+Example configuration:
 
 ```
-Internal LANs → OSPF → Core Router → Static Default Route → ISP
+router ospf 1
+ router-id 3.3.3.3
+ network 10.0.1.0 0.0.0.3 area 0
+ network 10.0.2.0 0.0.0.3 area 0
 ```
 
 ---
 
-## 🏢 Department VLANs
+### 2️⃣ Branch Routing
 
-| Department | VLAN    | Network         |
-| ---------- | ------- | --------------- |
-| HR         | VLAN 1  | 192.168.10.0/24 |
-| Sales      | VLAN 10 | 192.168.20.0/24 |
-| IT         | VLAN 20 | 192.168.30.0/24 |
-| Finance    | VLAN 30 | 192.168.40.0/24 |
-| R&D        | VLAN 40 | 192.168.50.0/24 |
-| Support    | VLAN 50 | 192.168.60.0/24 |
-
----
-
-## 🔗 WAN Links
-
-Router interconnections use **/30 point-to-point networks**
+Branch routers use **static routes** pointing toward their upstream router.
 
 Example:
 
 ```
-10.0.1.0/30
-10.0.2.0/30
-10.0.3.0/30
-10.0.4.0/30
-10.0.5.0/30
-10.0.6.0/30
-10.0.7.0/30
-10.0.8.0/30
+ip route 0.0.0.0 0.0.0.0 10.0.4.1
 ```
 
 ---
 
-## 🌍 ISP Connection
+### 3️⃣ Internet Connectivity
 
-```
-ISP Network: 200.0.0.0/30
-```
+The enterprise network connects to an **ISP router**.
 
-Static Default Route:
+HQ router forwards unknown traffic using a **default route**:
 
 ```
 ip route 0.0.0.0 0.0.0.0 200.0.0.1
 ```
 
----
-
-## ⚙️ Routing Configuration
-
-### OSPF Configuration Example
+The default route is then **redistributed into OSPF** so internal routers learn the internet path.
 
 ```
-router ospf 1
-network 10.0.0.0 0.0.255.255 area 0
-network 192.168.0.0 0.0.255.255 area 0
+default-information originate
 ```
 
 ---
 
-## 🧪 Troubleshooting Performed
+## 🧩 Special Implementation
 
-During the lab the following issues were identified and resolved:
-
-* OSPF neighbors not forming
-* Incorrect next-hop in static route
-* Missing default route
-* Ping reaching core but not ISP
-* First ping failure due to ARP
-* Interface not accepting direct IP address
-
----
-
-## 💡 Special Scenario
-
-One router module interface did not accept a direct IP address.
+In some routers the LAN interface module did not allow direct IP addressing.
 
 Solution:
 
-1. Created a VLAN interface
-2. Assigned an IP address to the VLAN
-3. Used it as the default gateway for the LAN
+* Created **SVI (Switch Virtual Interface)**
+* Assigned IP address to **VLAN interface**
+* Used it as **default gateway**
 
-This allowed Layer-3 routing to function correctly.
+Example:
+
+```
+interface vlan10
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+```
 
 ---
 
-## ✔ Final Results
+## 🔧 Troubleshooting Performed
 
-* All routers learned internal routes via OSPF
-* Default route successfully directed traffic to ISP
-* Full connectivity between all LAN networks
-* Stable and loop-free routing achieved
+During implementation several issues were encountered and resolved:
+
+• OSPF neighbors not forming
+• Static route next-hop misconfiguration
+• Missing default route toward ISP
+• Ping reaching HQ but not ISP
+• ARP causing first ping failure
+• Interface modules not accepting IP configuration
+
+Verification commands used:
+
+```
+show ip route
+show ip ospf neighbor
+show ip protocols
+ping
+traceroute
+```
+
+---
+
+## ✅ Final Results
+
+✔ Full connectivity between all LAN networks
+✔ Internal routing automatically learned via OSPF
+✔ Static routes correctly redistributed into OSPF
+✔ Default route successfully propagated to all routers
+✔ End-to-end connectivity including ISP
 
 ---
 
 ## 🛠 Tools Used
 
 * Cisco Packet Tracer
-* Basic Cisco IOS CLI
-* Networking concepts from CCNA curriculum
+* Cisco IOS CLI
+* CCNA Routing Concepts
 
 ---
 
-## 📚 Key Learning
+## 🎯 Key Learning
 
-Networking is not just about memorizing commands.
-It requires understanding routing logic, gateway flow, and systematic troubleshooting.
+This lab demonstrates that networking is not just about CLI commands.
+It requires understanding:
+
+* routing logic
+* traffic flow
+* gateway hierarchy
+* structured troubleshooting
 
 ---
 
-## Author
+## 👨‍💻 Author
 
 **Shivam Kumar Sinha**
 
@@ -156,4 +192,5 @@ GitHub
 https://github.com/Shivam-azure-network-labs
 
 Part of my **CCNA Networking Labs Series** where I practice real-world networking scenarios.
+
 
