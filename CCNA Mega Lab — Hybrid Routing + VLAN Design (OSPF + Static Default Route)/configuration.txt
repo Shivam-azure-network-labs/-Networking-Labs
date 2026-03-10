@@ -1,0 +1,297 @@
+# CCNA Enterprise Mega Lab
+
+## Full Device Configuration
+
+Topology Type: Hybrid Routing (OSPF + Static + Default Route)
+
+---
+
+# ================================
+
+# ISP ROUTER
+
+# ================================
+
+hostname ISP
+
+interface Serial0/0/0
+description LINK_TO_HEADQUARTER
+ip address 200.0.0.1 255.255.255.252
+no shutdown
+
+! Route towards enterprise network
+ip route 10.0.0.0 255.0.0.0 200.0.0.2
+
+! Default route simulation
+ip route 0.0.0.0 0.0.0.0 200.0.0.2
+
+---
+
+# ================================
+
+# HEADQUARTER ROUTER
+
+# ================================
+
+hostname HEAD-QUARTER
+
+interface GigabitEthernet0/0
+description LINK_TO_CORE_A
+ip address 10.0.1.1 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/1
+description LINK_TO_CORE_B
+ip address 10.0.2.1 255.255.255.252
+no shutdown
+
+interface Serial0/0/0
+description LINK_TO_ISP
+ip address 200.0.0.2 255.255.255.252
+no shutdown
+
+interface Loopback0
+ip address 3.3.3.3 255.255.255.255
+
+! Default route to ISP
+ip route 0.0.0.0 0.0.0.0 200.0.0.1
+
+router ospf 1
+router-id 3.3.3.3
+network 10.0.1.0 0.0.0.3 area 0
+network 10.0.2.0 0.0.0.3 area 0
+default-information originate
+
+---
+
+# ================================
+
+# CORE-A ROUTER
+
+# ================================
+
+hostname CORE-A
+
+interface GigabitEthernet0/0
+description LINK_TO_HEADQUARTER
+ip address 10.0.1.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/1
+description LINK_TO_SALES
+ip address 10.0.3.1 255.255.255.252
+no shutdown
+
+interface Loopback0
+ip address 1.1.1.1 255.255.255.255
+
+! Static routes to branch networks
+ip route 10.0.4.0 255.255.255.252 10.0.3.2
+ip route 10.0.5.0 255.255.255.252 10.0.3.2
+
+ip route 192.168.10.0 255.255.255.0 10.0.3.2
+ip route 192.168.20.0 255.255.255.0 10.0.3.2
+ip route 192.168.30.0 255.255.255.0 10.0.3.2
+
+router ospf 1
+router-id 1.1.1.1
+network 10.0.1.0 0.0.0.3 area 0
+network 10.0.3.0 0.0.0.3 area 0
+
+redistribute static subnets
+
+---
+
+# ================================
+
+# CORE-B ROUTER
+
+# ================================
+
+hostname CORE-B
+
+interface GigabitEthernet0/1
+description LINK_TO_HEADQUARTER
+ip address 10.0.2.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/0
+description LINK_TO_RND
+ip address 10.0.6.1 255.255.255.252
+no shutdown
+
+interface Loopback0
+ip address 2.2.2.2 255.255.255.255
+
+! Static routes to branch networks
+ip route 10.0.7.0 255.255.255.252 10.0.6.2
+ip route 10.0.8.0 255.255.255.252 10.0.6.2
+
+ip route 192.168.40.0 255.255.255.0 10.0.6.2
+ip route 192.168.50.0 255.255.255.0 10.0.6.2
+ip route 192.168.60.0 255.255.255.0 10.0.6.2
+
+router ospf 1
+router-id 2.2.2.2
+network 10.0.2.0 0.0.0.3 area 0
+network 10.0.6.0 0.0.0.3 area 0
+
+redistribute static subnets
+
+---
+
+# ================================
+
+# SALES ROUTER
+
+# ================================
+
+hostname SALES
+
+interface GigabitEthernet0/1
+description LINK_TO_CORE_A
+ip address 10.0.3.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/0
+description LINK_TO_HR
+ip address 10.0.4.1 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/2
+description LINK_TO_IT
+ip address 10.0.5.1 255.255.255.252
+no shutdown
+
+interface Vlan10
+description SALES_LAN
+ip address 192.168.20.1 255.255.255.0
+no shutdown
+
+ip route 192.168.10.0 255.255.255.0 10.0.4.2
+ip route 192.168.30.0 255.255.255.0 10.0.5.2
+
+ip route 0.0.0.0 0.0.0.0 10.0.3.1
+
+---
+
+# ================================
+
+# HR ROUTER
+
+# ================================
+
+hostname HR
+
+interface GigabitEthernet0/0
+description LINK_TO_SALES
+ip address 10.0.4.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/1
+description HR_LAN
+ip address 192.168.10.1 255.255.255.0
+no shutdown
+
+ip route 0.0.0.0 0.0.0.0 10.0.4.1
+
+---
+
+# ================================
+
+# IT ROUTER
+
+# ================================
+
+hostname IT
+
+interface GigabitEthernet0/0
+description LINK_TO_SALES
+ip address 10.0.5.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/1
+description IT_LAN
+ip address 192.168.30.1 255.255.255.0
+no shutdown
+
+ip route 0.0.0.0 0.0.0.0 10.0.5.1
+
+---
+
+# ================================
+
+# R&D ROUTER
+
+# ================================
+
+hostname RND
+
+interface GigabitEthernet0/0
+description LINK_TO_CORE_B
+ip address 10.0.6.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/2
+description LINK_TO_FINANCE
+ip address 10.0.7.1 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/1
+description LINK_TO_SUPPORT
+ip address 10.0.8.1 255.255.255.252
+no shutdown
+
+interface Vlan10
+description RND_LAN
+ip address 192.168.50.1 255.255.255.0
+no shutdown
+
+ip route 192.168.40.0 255.255.255.0 10.0.7.2
+ip route 192.168.60.0 255.255.255.0 10.0.8.2
+
+ip route 0.0.0.0 0.0.0.0 10.0.6.1
+
+---
+
+# ================================
+
+# FINANCE ROUTER
+
+# ================================
+
+hostname FINANCE
+
+interface GigabitEthernet0/2
+description LINK_TO_RND
+ip address 10.0.7.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/1
+description FINANCE_LAN
+ip address 192.168.40.1 255.255.255.0
+no shutdown
+
+ip route 0.0.0.0 0.0.0.0 10.0.7.1
+
+---
+
+# ================================
+
+# SUPPORT ROUTER
+
+# ================================
+
+hostname SUPPORT
+
+interface GigabitEthernet0/0
+description LINK_TO_RND
+ip address 10.0.8.2 255.255.255.252
+no shutdown
+
+interface GigabitEthernet0/1
+description SUPPORT_LAN
+ip address 192.168.60.1 255.255.255.0
+no shutdown
+
+ip route 0.0.0.0 0.0.0.0 10.0.8.1
