@@ -1,0 +1,326 @@
+========================================
+CCNA Lab #12 – EtherChannel Configuration
+========================================
+
+VLAN Structure
+--------------
+VLAN 10 – HR
+VLAN 20 – SALES
+VLAN 30 – IT
+
+
+========================================
+CORE-1 Configuration
+========================================
+
+enable
+configure terminal
+
+vlan 10
+ name HR
+vlan 20
+ name SALES
+vlan 30
+ name IT
+
+interface range fa0/1-4
+ switchport mode trunk
+ channel-group 1 mode active
+
+interface port-channel 1
+ switchport mode trunk
+
+end
+
+
+========================================
+CORE-2 Configuration
+========================================
+
+enable
+configure terminal
+
+vlan 10
+ name HR
+vlan 20
+ name SALES
+vlan 30
+ name IT
+
+interface range fa0/1-4
+ switchport mode trunk
+ channel-group 1 mode passive
+
+interface port-channel 1
+ switchport mode trunk
+
+
+interface range fa0/5-6
+ switchport mode trunk
+ channel-group 2 mode active
+
+interface port-channel 2
+ switchport mode trunk
+
+
+interface range fa0/7-8
+ switchport mode trunk
+ channel-group 3 mode active
+
+interface port-channel 3
+ switchport mode trunk
+
+end
+
+
+========================================
+DISTRIBUTION-1 Configuration
+========================================
+
+enable
+configure terminal
+
+vlan 10
+ name HR
+vlan 20
+ name SALES
+vlan 30
+ name IT
+
+
+interface range fa0/5-6
+ switchport mode trunk
+ channel-group 2 mode passive
+
+interface port-channel 2
+ switchport mode trunk
+
+
+interface range fa0/1-2
+ switchport mode trunk
+ channel-group 4 mode desirable
+
+interface port-channel 4
+ switchport mode trunk
+
+
+interface range fa0/3-4
+ switchport mode trunk
+ channel-group 5 mode desirable
+
+interface port-channel 5
+ switchport mode trunk
+
+end
+
+
+========================================
+DISTRIBUTION-2 Configuration
+========================================
+
+enable
+configure terminal
+
+vlan 10
+ name HR
+vlan 20
+ name SALES
+vlan 30
+ name IT
+
+
+interface range fa0/7-8
+ switchport mode trunk
+ channel-group 3 mode passive
+
+interface port-channel 3
+ switchport mode trunk
+
+
+interface range fa0/1-2
+ switchport mode trunk
+ channel-group 4 mode desirable
+
+interface port-channel 4
+ switchport mode trunk
+
+
+interface range fa0/3-4
+ switchport mode trunk
+ channel-group 5 mode desirable
+
+interface port-channel 5
+ switchport mode trunk
+
+end
+
+
+========================================
+ACCESS-1 Configuration
+========================================
+
+enable
+configure terminal
+
+vlan 10
+ name HR
+vlan 20
+ name SALES
+vlan 30
+ name IT
+
+
+interface range fa0/1-2
+ switchport mode trunk
+ channel-group 4 mode auto
+
+interface port-channel 4
+ switchport mode trunk
+
+
+interface fa0/10
+ switchport mode access
+ switchport access vlan 10
+
+interface fa0/11
+ switchport mode access
+ switchport access vlan 20
+
+interface fa0/12
+ switchport mode access
+ switchport access vlan 30
+
+end
+
+
+========================================
+ACCESS-2 Configuration
+========================================
+
+enable
+configure terminal
+
+vlan 10
+ name HR
+vlan 20
+ name SALES
+vlan 30
+ name IT
+
+
+interface range fa0/1-2
+ switchport mode trunk
+ channel-group 5 mode auto
+
+interface port-channel 5
+ switchport mode trunk
+
+
+interface fa0/10
+ switchport mode access
+ switchport access vlan 10
+
+interface fa0/11
+ switchport mode access
+ switchport access vlan 20
+
+interface fa0/12
+ switchport mode access
+ switchport access vlan 30
+
+end
+
+
+========================================
+ACCESS-3 Configuration
+========================================
+
+enable
+configure terminal
+
+vlan 10
+ name HR
+vlan 20
+ name SALES
+vlan 30
+ name IT
+
+
+interface range fa0/1-2
+ switchport mode trunk
+ channel-group 4 mode auto
+
+interface port-channel 4
+ switchport mode trunk
+
+
+interface fa0/10
+ switchport mode access
+ switchport access vlan 10
+
+interface fa0/11
+ switchport mode access
+ switchport access vlan 20
+
+interface fa0/12
+ switchport mode access
+ switchport access vlan 30
+
+end
+
+
+========================================
+ACCESS-4 Configuration
+========================================
+
+enable
+configure terminal
+
+vlan 10
+ name HR
+vlan 20
+ name SALES
+vlan 30
+ name IT
+
+
+interface range fa0/1-2
+ switchport mode trunk
+ channel-group 5 mode auto
+
+interface port-channel 5
+ switchport mode trunk
+
+
+interface fa0/10
+ switchport mode access
+ switchport access vlan 10
+
+interface fa0/11
+ switchport mode access
+ switchport access vlan 20
+
+interface fa0/12
+ switchport mode access
+ switchport access vlan 30
+
+end
+
+
+========================================
+PC IP Addressing
+========================================
+
+HR PC
+IP Address: 192.168.10.0/24
+Subnet Mask: 255.255.255.0
+
+
+SALES PC
+IP Address: 192.168.20.0/24
+Subnet Mask: 255.255.255.0
+
+
+IT PC
+IP Address: 192.168.30.0/24
+Subnet Mask: 255.255.255.0
