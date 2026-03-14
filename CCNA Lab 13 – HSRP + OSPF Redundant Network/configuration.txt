@@ -124,6 +124,13 @@ hostname ACCESS-3
 interface g0/0
 no shutdown
 
+interface g0/1
+no shutdown
+
+interface g0/2
+no shutdown
+
+
 interface g0/0.30
 encapsulation dot1Q 30
 ip address 192.168.30.2 255.255.255.0
@@ -244,7 +251,7 @@ switchport mode trunk
 interface fa0/23
 switchport mode trunk
 
-interface G0/24
+interface G0/1
 switchport mode trunk
 
 ==============================
@@ -274,7 +281,7 @@ switchport mode trunk
 interface fa0/23
 switchport mode trunk
 
-interface G0/24
+interface G0/1
 switchport mode trunk
 
 ==============================
@@ -300,4 +307,7 @@ switchport mode access
 switchport access vlan 40
 
 interface fa0/24
+switchport mode trunk
+
+interface G0/1
 switchport mode trunk
