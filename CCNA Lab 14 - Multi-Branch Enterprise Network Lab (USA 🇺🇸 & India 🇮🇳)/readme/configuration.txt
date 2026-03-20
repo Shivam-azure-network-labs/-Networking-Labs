@@ -1,0 +1,468 @@
+! =========================
+! USA-BRANCH
+! =========================
+hostname USA-BRANCH
+no ip cef
+
+interface g0/0
+ ip address 192.168.10.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+interface g0/1
+ ip address 192.168.11.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+interface g0/2
+ ip address 192.168.12.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+interface s0/0/0
+ ip address 10.0.0.2 255.255.255.252
+ ip nat outside
+ clock rate 2000000
+ no shutdown
+
+router ospf 1
+ network 192.168.10.0 0.0.0.255 area 0
+ network 192.168.11.0 0.0.0.255 area 0
+ network 192.168.12.0 0.0.0.255 area 0
+ default-information originate
+
+ip nat inside source static 192.168.23.10 200.2.2.10
+
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+ip route 200.1.1.48 255.255.255.240 10.0.0.1
+
+! =========================
+! USA-HR
+! =========================
+hostname USA-HR
+
+interface g0/0
+ ip address 192.168.10.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.13.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.14.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.10.0 0.0.0.255 area 0
+ network 192.168.13.0 0.0.0.255 area 0
+ network 192.168.14.0 0.0.0.255 area 0
+
+! =========================
+! USA-IT
+! =========================
+hostname USA-IT
+
+interface g0/0
+ ip address 192.168.13.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.19.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.13.0 0.0.0.255 area 0
+ network 192.168.19.0 0.0.0.255 area 0
+
+! =========================
+! USA-FINANCE
+! =========================
+hostname USA-FINANCE
+
+interface g0/0
+ ip address 192.168.11.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.15.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.16.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.11.0 0.0.0.255 area 0
+ network 192.168.15.0 0.0.0.255 area 0
+ network 192.168.16.0 0.0.0.255 area 0
+
+! =========================
+! USA-R&D
+! =========================
+hostname USA-R&D
+
+interface g0/1
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.14.2 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.14.0 0.0.0.255 area 0
+ network 192.168.20.0 0.0.0.255 area 0
+
+! =========================
+! USA-SALES
+! =========================
+hostname USA-SALES
+
+interface g0/0
+ ip address 192.168.17.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.18.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.12.2 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.12.0 0.0.0.255 area 0
+ network 192.168.17.0 0.0.0.255 area 0
+ network 192.168.18.0 0.0.0.255 area 0
+
+! =========================
+! USA-SUPPORT
+! =========================
+hostname USA-SUPPORT
+
+interface g0/1
+ ip address 192.168.15.2 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.21.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.15.0 0.0.0.255 area 0
+ network 192.168.21.0 0.0.0.255 area 0
+
+! =========================
+! USA-MANAGEMENT
+! =========================
+hostname USA-MANAGEMENT
+
+interface g0/1
+ ip address 192.168.22.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.16.2 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.16.0 0.0.0.255 area 0
+ network 192.168.22.0 0.0.0.255 area 0
+
+! =========================
+! USA-SECURITY
+! =========================
+hostname USA-SECURITY
+
+interface g0/0
+ ip address 192.168.17.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.23.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.17.0 0.0.0.255 area 0
+ network 192.168.23.0 0.0.0.255 area 0
+
+! =========================
+! USA-DATACENTER
+! =========================
+hostname USA-DATACENTER
+
+interface g0/1
+ ip address 192.168.18.2 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.24.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.18.0 0.0.0.255 area 0
+ network 192.168.24.0 0.0.0.255 area 0
+
+
+! =========================
+! INDIA-BRANCH
+! =========================
+hostname INDIA-BRANCH
+
+interface g0/0
+ ip address 192.168.30.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+interface g0/1
+ ip address 192.168.31.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+interface g0/2
+ ip address 192.168.32.1 255.255.255.0
+ ip nat inside
+ no shutdown
+
+interface s0/0/0
+ ip address 10.0.0.6 255.255.255.252
+ ip nat outside
+ clock rate 2000000
+ no shutdown
+
+router ospf 1
+ network 192.168.30.0 0.0.0.255 area 1
+ network 192.168.31.0 0.0.0.255 area 1
+ network 192.168.32.0 0.0.0.255 area 1
+ default-information originate
+
+ip nat pool INDIA_POOL 200.1.1.50 200.1.1.60 netmask 255.255.255.240
+ip nat inside source list 1 pool INDIA_POOL overload
+
+access-list 1 permit 192.168.0.0 0.0.255.255
+
+ip route 0.0.0.0 0.0.0.0 10.0.0.5
+ip route 200.2.2.0 255.255.255.0 10.0.0.5
+
+! =========================
+! IND-HR
+! =========================
+hostname IND-HR
+
+interface g0/0
+ ip address 192.168.30.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.33.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.34.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.30.0 0.0.0.255 area 1
+ network 192.168.33.0 0.0.0.255 area 1
+ network 192.168.34.0 0.0.0.255 area 1
+
+! =========================
+! IND-IT
+! =========================
+hostname IND-IT
+
+interface g0/1
+ ip address 192.168.33.2 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.39.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.33.0 0.0.0.255 area 1
+ network 192.168.39.0 0.0.0.255 area 1
+
+! =========================
+! IND-R&D
+! =========================
+hostname IND-R&D
+
+interface g0/1
+ ip address 192.168.40.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.34.2 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.34.0 0.0.0.255 area 1
+ network 192.168.40.0 0.0.0.255 area 1
+
+! =========================
+! IND-SALES
+! =========================
+hostname IND-SALES
+
+interface g0/0
+ ip address 192.168.35.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.31.2 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.36.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.31.0 0.0.0.255 area 1
+ network 192.168.35.0 0.0.0.255 area 1
+ network 192.168.36.0 0.0.0.255 area 1
+
+! =========================
+! IND-SUPPORT
+! =========================
+hostname IND-SUPPORT
+
+interface g0/0
+ ip address 192.168.35.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.41.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.35.0 0.0.0.255 area 1
+ network 192.168.41.0 0.0.0.255 area 1
+
+! =========================
+! IND-FINANCE
+! =========================
+hostname IND-FINANCE
+
+interface g0/0
+ ip address 192.168.37.1 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.38.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.32.2 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.32.0 0.0.0.255 area 1
+ network 192.168.37.0 0.0.0.255 area 1
+ network 192.168.38.0 0.0.0.255 area 1
+
+! =========================
+! IND-MANAGEMENT
+! =========================
+hostname IND-MANAGEMENT
+
+interface g0/1
+ ip address 192.168.42.1 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.36.2 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.36.0 0.0.0.255 area 1
+ network 192.168.42.0 0.0.0.255 area 1
+
+! =========================
+! IND-SECURITY
+! =========================
+hostname IND-SECURITY
+
+interface g0/0
+ ip address 192.168.37.2 255.255.255.0
+ no shutdown
+
+interface g0/1
+ ip address 192.168.43.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.37.0 0.0.0.255 area 1
+ network 192.168.43.0 0.0.0.255 area 1
+
+! =========================
+! IND-DATACENTER
+! =========================
+hostname IND-DATACENTER
+
+interface g0/1
+ ip address 192.168.38.2 255.255.255.0
+ no shutdown
+
+interface g0/2
+ ip address 192.168.44.1 255.255.255.0
+ no shutdown
+
+router ospf 1
+ network 192.168.38.0 0.0.0.255 area 1
+ network 192.168.44.0 0.0.0.255 area 1 
+
+  ! =========================
+! ISP ROUTER
+! =========================
+hostname ISP
+
+! =========================
+! INTERFACES
+! =========================
+interface g0/0
+ ip address 100.1.1.1 255.255.255.0
+ no shutdown
+
+interface s0/0/0
+ ip address 10.0.0.1 255.255.255.252
+ no shutdown
+
+interface s0/0/1
+ ip address 10.0.0.5 255.255.255.252
+ no shutdown
+
+interface s0/1/0
+ ip address 10.0.0.9 255.255.255.252
+ clock rate 2000000
+ no shutdown
+
+! =========================
+! STATIC ROUTING (USA SIDE)
+! =========================
+ip route 192.168.10.0 255.255.254.0 10.0.0.2
+ip route 192.168.12.0 255.255.252.0 10.0.0.2
+ip route 192.168.16.0 255.255.248.0 10.0.0.2
+ip route 192.168.24.0 255.255.255.0 10.0.0.2
+
+! USA PUBLIC / NAT NETWORK
+ip route 200.2.2.0 255.255.255.0 10.0.0.2
+
+! =========================
+! STATIC ROUTING (INDIA SIDE)
+! =========================
+ip route 192.168.30.0 255.255.254.0 10.0.0.6
+ip route 192.168.32.0 255.255.248.0 10.0.0.6
+ip route 192.168.40.0 255.255.252.0 10.0.0.6
+ip route 192.168.44.0 255.255.255.0 10.0.0.6
+
+! INDIA PUBLIC / NAT NETWORK
+ip route 200.1.1.48 255.255.255.240 10.0.0.6  
+
+
+
+  
+
+
+  
