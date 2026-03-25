@@ -1,0 +1,1902 @@
+=================================================================
+🌍 ISP ROUTER (FINAL CLEAN CONFIG)
+=================================================================
+
+hostname ISP
+
+! ===============================
+! INTERFACES
+! ===============================
+
+interface Serial0/0/0
+ description LINK_TO_INDIA_PRIMARY
+ ip address 100.0.0.9 255.255.255.252
+ clock rate 2000000
+ no shutdown
+
+interface Serial0/0/1
+ description LINK_TO_USA_PRIMARY
+ ip address 100.0.0.13 255.255.255.252
+ no shutdown
+
+interface Serial0/1/0
+ description LINK_TO_INDIA_BACKUP
+ ip address 100.0.0.1 255.255.255.252
+ no shutdown
+
+interface Serial0/1/1
+ description LINK_TO_INDIA_SECOND_BACKUP
+ ip address 100.0.0.5 255.255.255.252
+ no shutdown
+
+interface Serial0/2/0
+ description LINK_TO_UK_PRIMARY
+ ip address 100.0.0.17 255.255.255.252
+ no shutdown
+
+interface Serial0/2/1
+ description LINK_TO_UK_BACKUP
+ ip address 100.0.0.21 255.255.255.252
+ no shutdown
+
+
+! ===============================
+! ROUTING – PRIMARY + FLOATING
+! ===============================
+
+! 🇮🇳 INDIA NETWORKS
+ip route 10.10.0.0 255.255.0.0 100.0.0.2
+ip route 10.10.0.0 255.255.0.0 100.0.0.6 10
+
+ip route 192.168.10.0 255.255.255.0 100.0.0.2
+ip route 192.168.10.0 255.255.255.0 100.0.0.6 10
+
+
+! 🇺🇸 USA NETWORKS
+ip route 20.20.0.0 255.255.0.0 100.0.0.10
+ip route 20.20.0.0 255.255.0.0 100.0.0.14 10
+
+ip route 192.168.20.0 255.255.255.0 100.0.0.10
+ip route 192.168.20.0 255.255.255.0 100.0.0.14 10
+
+
+! 🇬🇧 UK NETWORKS
+ip route 30.30.0.0 255.255.0.0 100.0.0.18
+ip route 30.30.0.0 255.255.0.0 100.0.0.22 10
+
+ip route 192.168.30.0 255.255.255.0 100.0.0.18
+ip route 192.168.30.0 255.255.255.0 100.0.0.22 10
+
+
+! ===============================
+! PUBLIC NAT NETWORK ROUTES
+! ===============================
+
+! INDIA PUBLIC
+ip route 100.0.1.0 255.255.255.0 100.0.0.2
+
+! USA PUBLIC
+ip route 200.0.1.0 255.255.255.0 100.0.0.10
+
+! UK PUBLIC
+ip route 150.0.1.0 255.255.255.0 100.0.0.18
+
+
+
+
+=================================================================
+🇮🇳 INDIA BRANCH ROUTER (INA-BRANCH)
+=================================================================
+
+hostname INA-BRANCH
+
+! ===============================
+! LOOPBACK (ROUTER-ID)
+! ===============================
+interface Loopback0
+ ip address 1.1.1.1 255.255.255.255
+
+
+! ===============================
+! INTERNAL LINKS (TO CORE)
+! ===============================
+
+interface Serial0/0/0
+ description LINK_TO_CORE_PRIMARY
+ ip address 10.10.100.1 255.255.255.252
+ ip ospf cost 10
+ ip nat inside
+ ip access-group INDIA-SECURITY in
+ no shutdown
+
+interface Serial0/0/1
+ description LINK_TO_CORE_BACKUP
+ ip address 10.10.100.5 255.255.255.252
+ ip ospf cost 100
+ ip nat inside
+ ip access-group INDIA-SECURITY in
+ no shutdown
+
+
+! ===============================
+! EXTERNAL LINKS (TO ISP)
+! ===============================
+
+interface Serial0/1/0
+ description LINK_TO_ISP_PRIMARY
+ ip address 100.0.0.2 255.255.255.252
+ ip nat outside
+ clock rate 2000000
+ no shutdown
+
+interface Serial0/1/1
+ description LINK_TO_ISP_BACKUP
+ ip address 100.0.0.6 255.255.255.252
+ ip nat outside
+ clock rate 2000000
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION
+! ===============================
+
+router ospf 1
+ router-id 1.1.1.1
+ log-adjacency-changes
+
+ network 10.10.100.0 0.0.0.3 area 0
+ network 10.10.100.4 0.0.0.3 area 0
+
+ default-information originate
+
+
+! ===============================
+! STATIC ROUTES (PRIMARY + FLOATING)
+! ===============================
+
+ip route 0.0.0.0 0.0.0.0 100.0.0.1
+ip route 0.0.0.0 0.0.0.0 100.0.0.5 10
+
+
+! ===============================
+! NAT CONFIGURATION
+! ===============================
+
+ip nat pool INDIA_POOL 100.0.1.10 100.0.1.50 netmask 255.255.255.0
+
+ip nat inside source list NAT-INDIA pool INDIA_POOL overload
+
+
+! ===============================
+! NAT ACL (TRAFFIC FILTERING)
+! ===============================
+
+ip access-list extended NAT-INDIA
+ deny ip 10.10.0.0 0.0.255.255 192.168.0.0 0.0.255.255
+ deny ip 10.10.0.0 0.0.255.255 20.20.0.0 0.0.255.255
+ deny ip 10.10.0.0 0.0.255.255 30.30.0.0 0.0.255.255
+ permit ip 10.10.0.0 0.0.255.255 any
+
+
+! ===============================
+! SECURITY ACL (INTER-COUNTRY CONTROL)
+! ===============================
+
+ip access-list extended INDIA-SECURITY
+ permit ip 10.10.30.0 0.0.0.255 any
+ deny ip 10.10.0.0 0.0.255.255 20.20.0.0 0.0.255.255
+ deny ip 10.10.0.0 0.0.255.255 30.30.0.0 0.0.255.255
+ permit ip 10.10.0.0 0.0.255.255 any
+
+
+=================================================================
+🇺🇸 USA BRANCH ROUTER (USA-BRANCH)
+=================================================================
+
+hostname USA-BRANCH
+
+! ===============================
+! LOOPBACK (ROUTER-ID)
+! ===============================
+interface Loopback0
+ ip address 2.2.2.2 255.255.255.255
+
+
+! ===============================
+! EXTERNAL LINKS (TO ISP)
+! ===============================
+
+interface Serial0/0/0
+ description LINK_TO_ISP_PRIMARY
+ ip address 100.0.0.10 255.255.255.252
+ ip nat outside
+ no shutdown
+
+interface Serial0/0/1
+ description LINK_TO_ISP_BACKUP
+ ip address 100.0.0.14 255.255.255.252
+ ip nat outside
+ clock rate 2000000
+ no shutdown
+
+
+! ===============================
+! INTERNAL LINKS (TO CORE)
+! ===============================
+
+interface Serial0/3/0
+ description LINK_TO_CORE_PRIMARY
+ ip address 20.20.100.1 255.255.255.252
+ ip ospf cost 10
+ ip nat inside
+ ip access-group USA-SECURITY in
+ no shutdown
+
+interface Serial0/3/1
+ description LINK_TO_CORE_BACKUP
+ ip address 20.20.100.5 255.255.255.252
+ ip ospf cost 100
+ ip nat inside
+ ip access-group USA-SECURITY in
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION
+! ===============================
+
+router ospf 1
+ router-id 2.2.2.2
+ log-adjacency-changes
+
+ network 20.20.100.0 0.0.0.3 area 1
+ network 20.20.100.4 0.0.0.3 area 1
+
+ default-information originate
+
+
+! ===============================
+! STATIC ROUTES (PRIMARY + FLOATING)
+! ===============================
+
+ip route 0.0.0.0 0.0.0.0 100.0.0.9
+ip route 0.0.0.0 0.0.0.0 100.0.0.13 10
+
+
+! ===============================
+! NAT CONFIGURATION
+! ===============================
+
+ip nat pool USA_POOL 200.0.1.10 200.0.1.50 netmask 255.255.255.0
+
+ip nat inside source list NAT-USA pool USA_POOL overload
+
+
+! ===============================
+! NAT ACL (TRAFFIC CONTROL)
+! ===============================
+
+ip access-list extended NAT-USA
+ deny ip 20.20.0.0 0.0.255.255 192.168.0.0 0.0.255.255
+ deny ip 20.20.0.0 0.0.255.255 10.10.0.0 0.0.255.255
+ deny ip 20.20.0.0 0.0.255.255 30.30.0.0 0.0.255.255
+ permit ip 20.20.0.0 0.0.255.255 any
+
+
+! ===============================
+! SECURITY ACL (ACCESS CONTROL)
+! ===============================
+
+ip access-list extended USA-SECURITY
+ permit ip 20.20.30.0 0.0.0.255 any
+ deny ip 20.20.0.0 0.0.255.255 10.10.0.0 0.0.255.255
+ deny ip 20.20.0.0 0.0.255.255 30.30.0.0 0.0.255.255
+ permit ip 20.20.0.0 0.0.255.255 any
+
+
+=================================================================
+🇬🇧 UK BRANCH ROUTER (UK-BRANCH)
+=================================================================
+
+hostname UK-BRANCH
+
+! ===============================
+! LOOPBACK (ROUTER-ID)
+! ===============================
+interface Loopback0
+ ip address 3.3.3.3 255.255.255.255
+
+
+! ===============================
+! INTERNAL LINKS (TO CORE)
+! ===============================
+
+interface Serial0/0/0
+ description LINK_TO_CORE_PRIMARY
+ ip address 30.30.100.1 255.255.255.252
+ ip ospf cost 10
+ ip nat inside
+ ip access-group UK-SECURITY in
+ no shutdown
+
+interface Serial0/0/1
+ description LINK_TO_CORE_BACKUP
+ ip address 30.30.100.5 255.255.255.252
+ ip ospf cost 100
+ ip nat inside
+ ip access-group UK-SECURITY in
+ no shutdown
+
+
+! ===============================
+! EXTERNAL LINKS (TO ISP)
+! ===============================
+
+interface Serial0/2/0
+ description LINK_TO_ISP_PRIMARY
+ ip address 100.0.0.18 255.255.255.252
+ ip nat outside
+ clock rate 2000000
+ no shutdown
+
+interface Serial0/2/1
+ description LINK_TO_ISP_BACKUP
+ ip address 100.0.0.22 255.255.255.252
+ ip nat outside
+ clock rate 2000000
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION
+! ===============================
+
+router ospf 1
+ router-id 3.3.3.3
+ log-adjacency-changes
+
+ network 30.30.100.0 0.0.0.3 area 2
+ network 30.30.100.4 0.0.0.3 area 2
+
+ default-information originate
+
+
+! ===============================
+! STATIC ROUTES (PRIMARY + FLOATING)
+! ===============================
+
+ip route 0.0.0.0 0.0.0.0 100.0.0.17
+ip route 0.0.0.0 0.0.0.0 100.0.0.21 10
+
+
+! ===============================
+! NAT CONFIGURATION
+! ===============================
+
+ip nat pool UK_POOL 150.0.1.10 150.0.1.50 netmask 255.255.255.0
+
+ip nat inside source list NAT-UK pool UK_POOL overload
+
+
+! ===============================
+! NAT ACL (TRAFFIC CONTROL)
+! ===============================
+
+ip access-list extended NAT-UK
+ deny ip 30.30.0.0 0.0.255.255 192.168.0.0 0.0.255.255
+ deny ip 30.30.0.0 0.0.255.255 10.10.0.0 0.0.255.255
+ deny ip 30.30.0.0 0.0.255.255 20.20.0.0 0.0.255.255
+ permit ip 30.30.0.0 0.0.255.255 any
+
+
+! ===============================
+! SECURITY ACL (ACCESS CONTROL)
+! ===============================
+
+ip access-list extended UK-SECURITY
+ permit ip 30.30.30.0 0.0.0.255 any
+ deny ip 30.30.0.0 0.0.255.255 10.10.0.0 0.0.255.255
+ deny ip 30.30.0.0 0.0.255.255 20.20.0.0 0.0.255.255
+ permit ip 30.30.0.0 0.0.255.255 any
+
+
+=================================================================
+🇮🇳 INDIA OFFICE ROUTER (IND-OFFICE)
+=================================================================
+
+hostname IND-OFFICE
+
+! ===============================
+! INTERNAL LAN LINKS (TO SWITCH / VLAN GATEWAYS)
+! ===============================
+
+interface GigabitEthernet0/0
+ description HR_NETWORK_LINK
+ ip address 192.168.10.1 255.255.255.252
+ no shutdown
+
+interface GigabitEthernet0/1
+ description SALES_NETWORK_LINK
+ ip address 192.168.10.5 255.255.255.252
+ no shutdown
+
+interface GigabitEthernet0/2
+ description IT_NETWORK_LINK
+ ip address 192.168.10.9 255.255.255.252
+ no shutdown
+
+
+! ===============================
+! WAN LINKS (TO BRANCH ROUTER)
+! ===============================
+
+interface Serial0/0/0
+ description LINK_TO_BRANCH_PRIMARY
+ ip address 10.10.100.2 255.255.255.252
+ ip ospf cost 10
+ clock rate 2000000
+ no shutdown
+
+interface Serial0/0/1
+ description LINK_TO_BRANCH_BACKUP
+ ip address 10.10.100.6 255.255.255.252
+ ip ospf cost 100
+ clock rate 2000000
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION
+! ===============================
+
+router ospf 1
+ log-adjacency-changes
+
+ ! WAN LINKS
+ network 10.10.100.0 0.0.0.3 area 0
+ network 10.10.100.4 0.0.0.3 area 0
+
+ ! VLAN / LAN NETWORKS
+ network 192.168.10.0 0.0.0.3 area 0
+ network 192.168.10.4 0.0.0.3 area 0
+ network 192.168.10.8 0.0.0.3 area 0
+
+=================================================================
+🇮🇳 INDIA HR ROUTER (IND-HR)
+=================================================================
+
+hostname IND-HR
+
+! ===============================
+! UPLINK TO OFFICE ROUTER
+! ===============================
+
+interface GigabitEthernet0/0
+ description LINK_TO_IND-OFFICE
+ ip address 192.168.10.2 255.255.255.252
+ no shutdown
+
+
+! ===============================
+! VLAN TRUNK INTERFACE
+! ===============================
+
+interface GigabitEthernet0/1
+ no ip address
+ no shutdown
+
+
+! ===============================
+! VLAN 20 (SALES NETWORK)
+! ===============================
+
+interface GigabitEthernet0/1.20
+ description SALES_VLAN_GATEWAY
+ encapsulation dot1Q 20
+ ip address 10.10.20.3 255.255.255.0
+
+ standby 20 ip 10.10.20.1
+ standby 20 preempt
+
+
+! ===============================
+! VLAN TRUNK (SECOND PORT)
+! ===============================
+
+interface GigabitEthernet0/2
+ no ip address
+ no shutdown
+
+
+! ===============================
+! VLAN 10 (HR NETWORK)
+! ===============================
+
+interface GigabitEthernet0/2.10
+ description HR_VLAN_GATEWAY
+ encapsulation dot1Q 10
+ ip address 10.10.10.2 255.255.255.0
+
+ standby 10 ip 10.10.10.1
+ standby 10 priority 110
+ standby 10 preempt
+
+
+! ===============================
+! OSPF CONFIGURATION
+! ===============================
+
+router ospf 1
+ log-adjacency-changes
+
+ network 192.168.10.0 0.0.0.3 area 0
+ network 10.10.10.0 0.0.0.255 area 0
+ network 10.10.20.0 0.0.0.255 area 0
+
+
+=================================================================
+🇮🇳 HR ACCESS SWITCH (SW-IND-HR)
+=================================================================
+
+hostname SW-IND-HR
+
+! ===============================
+! SPANNING TREE
+! ===============================
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+
+! ===============================
+! VLAN CONFIGURATION
+! ===============================
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+
+! ===============================
+! ACCESS PORTS (HR USERS)
+! ===============================
+
+interface range FastEthernet0/1 - 3
+ description HR_USER_PORTS
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+
+
+! ===============================
+! UNUSED PORTS (SECURITY BEST PRACTICE)
+! ===============================
+
+interface range FastEthernet0/4 - 24
+ shutdown
+
+
+! ===============================
+! TRUNK LINKS (TO ROUTERS)
+! ===============================
+
+interface GigabitEthernet0/1
+ description TRUNK_TO_IND-HR_ROUTER
+ switchport mode trunk
+ no shutdown
+
+interface GigabitEthernet0/2
+ description TRUNK_TO_SECONDARY_ROUTER
+ switchport mode trunk
+ no shutdown
+
+
+! ===============================
+! MANAGEMENT VLAN (OPTIONAL)
+! ===============================
+
+interface Vlan1
+ no ip address
+ shutdown
+
+=================================================================
+🇮🇳 INDIA SALES ROUTER (IND-SALES)
+=================================================================
+
+hostname IND-SALES
+
+! ===============================
+! UPLINK TO IND-OFFICE
+! ===============================
+
+interface GigabitEthernet0/0
+ description LINK_TO_IND-OFFICE
+ ip address 192.168.10.6 255.255.255.252
+ no shutdown
+
+
+! ===============================
+! VLAN TRUNK INTERFACES
+! ===============================
+
+interface GigabitEthernet0/1
+ no ip address
+ no shutdown
+
+interface GigabitEthernet0/2
+ no ip address
+ no shutdown
+
+
+! ===============================
+! VLAN 10 (HR NETWORK)
+! ===============================
+
+interface GigabitEthernet0/1.10
+ description HR_VLAN_GATEWAY_BACKUP
+ encapsulation dot1Q 10
+ ip address 10.10.10.3 255.255.255.0
+ standby 10 ip 10.10.10.1
+ standby 10 priority 100
+ standby 10 preempt
+
+
+! ===============================
+! VLAN 30 (IT NETWORK)
+! ===============================
+
+interface GigabitEthernet0/2.30
+ description IT_VLAN_GATEWAY
+ encapsulation dot1Q 30
+ ip address 10.10.30.3 255.255.255.0
+ standby 30 ip 10.10.30.1
+ standby 30 priority 100
+ standby 30 preempt
+
+
+! ===============================
+! VLAN 20 (SALES NETWORK - SVI)
+! ===============================
+
+interface Vlan20
+ description SALES_VLAN_GATEWAY_PRIMARY
+ mac-address 0030.a3bd.e501
+ ip address 10.10.20.2 255.255.255.0
+
+ standby 20 ip 10.10.20.1
+ standby 20 priority 110
+ standby 20 preempt
+
+
+! ===============================
+! ACCESS PORT (LOCAL SWITCHING)
+! ===============================
+
+interface FastEthernet0/0/0
+ description SALES_LOCAL_USERS
+ switchport mode access
+ switchport access vlan 20
+
+! Optional unused ports
+interface range FastEthernet0/0/1 - 3
+ shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION
+! ===============================
+
+router ospf 1
+ log-adjacency-changes
+
+ network 192.168.10.4 0.0.0.3 area 0
+ network 10.10.10.0 0.0.0.255 area 0
+ network 10.10.20.0 0.0.0.255 area 0
+ network 10.10.30.0 0.0.0.255 area 0
+
+
+=================================================================
+🇮🇳 SALES ACCESS SWITCH (SW-IND-SALES)
+=================================================================
+
+hostname SW-IND-SALES
+
+! ===============================
+! SPANNING TREE
+! ===============================
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+
+! ===============================
+! VLAN CONFIGURATION
+! ===============================
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+vlan 30
+ name IT
+
+
+! ===============================
+! ACCESS PORTS (SALES USERS)
+! ===============================
+
+interface range FastEthernet0/1 - 3
+ description SALES_USER_PORTS
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+
+
+! ===============================
+! TRUNK PORT (TO ROUTER / CORE)
+! ===============================
+
+interface FastEthernet0/4
+ description TRUNK_TO_IND-SALES_ROUTER
+ switchport mode trunk
+ switchport trunk native vlan 20
+ no shutdown
+
+
+! ===============================
+! ADDITIONAL TRUNK LINKS
+! ===============================
+
+interface FastEthernet0/24
+ description TRUNK_TO_SECONDARY_DEVICE
+ switchport mode trunk
+ no shutdown
+
+interface GigabitEthernet0/1
+ description UPLINK_TRUNK
+ switchport mode trunk
+ no shutdown
+
+
+! ===============================
+! UNUSED PORTS (SECURITY)
+! ===============================
+
+interface range FastEthernet0/5 - 23
+ shutdown
+
+interface GigabitEthernet0/2
+ shutdown
+
+
+! ===============================
+! MANAGEMENT VLAN
+! ===============================
+
+interface Vlan1
+ no ip address
+ shutdown
+
+=================================================================
+🇮🇳 INDIA IT ROUTER (IND-IT)
+=================================================================
+
+hostname IND-IT
+
+! ===============================
+! VLAN TRUNK INTERFACES
+! ===============================
+
+interface GigabitEthernet0/0
+ no ip address
+ no shutdown
+
+interface GigabitEthernet0/1
+ no ip address
+ no shutdown
+
+
+! ===============================
+! VLAN 20 (SALES NETWORK)
+! ===============================
+
+interface GigabitEthernet0/0.20
+ description SALES_VLAN_GATEWAY_BACKUP
+ encapsulation dot1Q 20
+ ip address 10.10.20.4 255.255.255.0
+
+ standby 20 ip 10.10.20.1
+ standby 20 priority 90
+ standby 20 preempt
+
+
+! ===============================
+! VLAN 30 (IT NETWORK)
+! ===============================
+
+interface GigabitEthernet0/1.30
+ description IT_VLAN_GATEWAY_PRIMARY
+ encapsulation dot1Q 30
+ ip address 10.10.30.2 255.255.255.0
+
+ standby 30 ip 10.10.30.1
+ standby 30 priority 110
+ standby 30 preempt
+
+
+! ===============================
+! UPLINK TO IND-OFFICE
+! ===============================
+
+interface GigabitEthernet0/2
+ description LINK_TO_IND-OFFICE
+ ip address 192.168.10.10 255.255.255.252
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION
+! ===============================
+
+router ospf 1
+ log-adjacency-changes
+
+ network 192.168.10.8 0.0.0.3 area 0
+ network 10.10.30.0 0.0.0.255 area 0
+
+
+
+=================================================================
+🇺🇸 USA CORE ROUTER (USA-OFFICE)
+=================================================================
+
+hostname USA-OFFICE
+
+! ===============================
+! BASIC SETTINGS
+! ===============================
+no ip cef
+no ipv6 cef
+
+spanning-tree mode pvst
+
+
+! ===============================
+! INTERFACES CONFIGURATION
+! ===============================
+
+! ---- LAN LINKS ----
+interface GigabitEthernet0/0
+ description LINK_TO_USA-HR
+ ip address 192.168.20.1 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/1
+ description LINK_TO_USA-SALES
+ ip address 192.168.20.5 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/2
+ description LINK_TO_USA-IT
+ ip address 192.168.20.9 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+
+! ---- WAN SERIAL LINKS ----
+interface Serial0/3/0
+ description PRIMARY_LINK_TO_ISP
+ ip address 20.20.100.2 255.255.255.252
+ ip ospf cost 10
+ clock rate 2000000
+ no shutdown
+
+interface Serial0/3/1
+ description BACKUP_LINK_TO_ISP
+ ip address 20.20.100.6 255.255.255.252
+ ip ospf cost 100
+ clock rate 2000000
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION (AREA 1)
+! ===============================
+router ospf 1
+ router-id 22.22.22.22
+ log-adjacency-changes
+
+ network 20.20.100.0 0.0.0.3 area 1
+ network 20.20.100.4 0.0.0.3 area 1
+
+ network 192.168.20.0 0.0.0.3 area 1
+ network 192.168.20.4 0.0.0.3 area 1
+ network 192.168.20.8 0.0.0.3 area 1
+
+
+! ===============================
+! MANAGEMENT INTERFACE
+! ===============================
+interface Vlan1
+ no ip address
+ shutdown
+
+=================================================================
+🇺🇸 HR ROUTER (USA-HR)
+=================================================================
+
+hostname USA-HR
+
+! ===============================
+! BASIC SETTINGS
+! ===============================
+ip cef
+no ipv6 cef
+
+spanning-tree mode pvst
+
+
+! ===============================
+! INTERFACE CONFIGURATION
+! ===============================
+
+! ---- LINK TO CORE (USA-OFFICE) ----
+interface GigabitEthernet0/0
+ description LINK_TO_USA-OFFICE
+ ip address 192.168.20.2 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+
+! ===============================
+! ROUTER ON A STICK (HR VLAN)
+! ===============================
+
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/1.10
+ description VLAN10_HR_GATEWAY
+ encapsulation dot1Q 10
+ ip address 20.20.10.2 255.255.255.0
+ standby 10 ip 20.20.10.1
+ standby 10 priority 110
+ standby 10 preempt
+
+
+! ===============================
+! ROUTER ON A STICK (SALES VLAN)
+! ===============================
+
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/2.20
+ description VLAN20_SALES_GATEWAY
+ encapsulation dot1Q 20
+ ip address 20.20.20.3 255.255.255.0
+ standby 20 ip 20.20.20.1
+ standby 20 preempt
+
+
+! ===============================
+! OSPF CONFIGURATION (AREA 1)
+! ===============================
+
+router ospf 1
+ router-id 3.3.3.3
+ log-adjacency-changes
+
+ network 192.168.20.0 0.0.0.3 area 1
+ network 20.20.10.0 0.0.0.255 area 1
+ network 20.20.20.0 0.0.0.255 area 1
+
+=================================================================
+🇺🇸 HR ACCESS SWITCH (SW-USA-HR)
+=================================================================
+
+hostname SW-USA-HR
+
+! ===============================
+! SPANNING TREE
+! ===============================
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+
+! ===============================
+! VLAN CONFIGURATION
+! ===============================
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+vlan 30
+ name IT
+
+
+! ===============================
+! ACCESS PORTS (HR USERS)
+! ===============================
+
+interface range FastEthernet0/1 - 3
+ description HR_USER_PORTS
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+ no shutdown
+
+! ===============================
+! TRUNK PORTS (UPLINKS)
+! ===============================
+
+interface GigabitEthernet0/1
+ description TRUNK_TO_USA-HR_ROUTER
+ switchport mode trunk
+  no shutdown
+
+interface GigabitEthernet0/2
+ description TRUNK_TO_OTHER_DEVICE
+ switchport mode trunk
+  no shutdown
+
+
+! ===============================
+! UNUSED PORTS (SECURITY)
+! ===============================
+
+interface range FastEthernet0/4 - 24
+ shutdown
+
+=================================================================
+🇺🇸 SALES ROUTER (USA-SALES)
+=================================================================
+
+hostname USA-SALES
+
+! ===============================
+! BASIC SETTINGS
+! ===============================
+no ip cef
+no ipv6 cef
+
+spanning-tree mode pvst
+
+
+! ===============================
+! INTERFACE CONFIGURATION
+! ===============================
+
+! ---- VLAN 10 (HR) ----
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/0.10
+ description VLAN10_HR_GATEWAY
+ encapsulation dot1Q 10
+ ip address 20.20.10.3 255.255.255.0
+ standby 10 ip 20.20.10.1
+ standby 10 preempt
+
+
+! ---- LINK TO CORE (USA-OFFICE) ----
+interface GigabitEthernet0/1
+ description LINK_TO_USA-OFFICE
+ ip address 192.168.20.6 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+
+! ---- VLAN 30 (IT) ----
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/2.30
+ description VLAN30_IT_GATEWAY
+ encapsulation dot1Q 30
+ ip address 20.20.30.3 255.255.255.0
+ standby 30 ip 20.20.30.1
+ standby 30 preempt
+
+
+! ===============================
+! LAYER 3 VLAN (SALES - VLAN 20)
+! ===============================
+
+interface Vlan20
+ description VLAN20_SALES_GATEWAY
+ mac-address 00d0.9784.8901
+ ip address 20.20.20.2 255.255.255.0
+ standby 20 ip 20.20.20.1
+ standby 20 priority 110
+ standby 20 preempt
+
+
+! ===============================
+! ACCESS PORTS (INTEGRATED SWITCH)
+! ===============================
+
+interface FastEthernet0/0/0
+ description SALES_USER
+ switchport mode access
+ switchport access vlan 20
+
+interface FastEthernet0/0/1
+ switchport mode access
+
+interface FastEthernet0/0/2
+ switchport mode access
+
+interface FastEthernet0/0/3
+ switchport mode access
+
+
+! ===============================
+! OSPF CONFIGURATION (AREA 1)
+! ===============================
+
+router ospf 1
+ router-id 4.4.4.4
+ log-adjacency-changes
+
+ network 192.168.20.4 0.0.0.3 area 1
+ network 20.20.10.0 0.0.0.255 area 1
+ network 20.20.20.0 0.0.0.255 area 1
+ network 20.20.30.0 0.0.0.255 area 1
+   
+
+=================================================================
+🇺🇸 SALES ACCESS SWITCH (SW-USA-SALES)
+=================================================================
+
+hostname SW-USA-SALES
+
+! ===============================
+! SPANNING TREE
+! ===============================
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+
+! ===============================
+! VLAN CONFIGURATION
+! ===============================
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+vlan 30
+ name IT
+
+vlan 999
+ name NATIVE-BLACKHOLE
+
+
+! ===============================
+! ACCESS PORTS (SALES USERS)
+! ===============================
+
+interface range FastEthernet0/1 - 3
+ description SALES_USER_PORTS
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+
+
+! ===============================
+! TRUNK PORTS (UPLINKS)
+! ===============================
+
+interface FastEthernet0/24
+ description TRUNK_TO_ROUTER
+ switchport mode trunk
+ switchport trunk native vlan 20
+ no shutdown
+
+interface GigabitEthernet0/1
+ description TRUNK_TO_CORE_OR_SWITCH
+ switchport mode trunk
+ no shutdown
+
+interface GigabitEthernet0/2
+ description TRUNK_TO_BACKUP_LINK
+ switchport mode trunk
+  no shutdown
+
+
+! ===============================
+! UNUSED PORTS (SECURITY HARDENING)
+! ===============================
+
+interface range FastEthernet0/4 - 23
+ shutdown
+ 
+
+=================================================================
+🇺🇸 IT ROUTER (USA-IT)
+=================================================================
+
+hostname USA-IT
+
+! ===============================
+! BASIC SETTINGS
+! ===============================
+ip cef
+no ipv6 cef
+
+spanning-tree mode pvst
+
+
+! ===============================
+! ROUTER ON A STICK (SALES VLAN)
+! ===============================
+
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/0.20
+ description VLAN20_SALES_GATEWAY
+ encapsulation dot1Q 20
+ ip address 20.20.20.4 255.255.255.0
+ standby 20 ip 20.20.20.1
+ standby 20 priority 90
+ standby 20 preempt
+
+
+! ===============================
+! ROUTER ON A STICK (IT VLAN)
+! ===============================
+
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/1.30
+ description VLAN30_IT_GATEWAY
+ encapsulation dot1Q 30
+ ip address 20.20.30.2 255.255.255.0
+ standby 30 ip 20.20.30.1
+ standby 30 priority 110
+ standby 30 preempt
+
+
+! ===============================
+! LINK TO CORE (USA-OFFICE)
+! ===============================
+
+interface GigabitEthernet0/2
+ description LINK_TO_USA-OFFICE
+ ip address 192.168.20.10 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION (AREA 1)
+! ===============================
+
+router ospf 1
+ router-id 5.5.5.5
+ log-adjacency-changes
+
+ network 192.168.20.8 0.0.0.3 area 1
+ network 20.20.20.0 0.0.0.255 area 1
+ network 20.20.30.0 0.0.0.255 area 1
+
+
+=================================================================
+🇺🇸 IT ACCESS SWITCH (SW-USA-IT)
+=================================================================
+
+hostname SW-USA-IT
+
+! ===============================
+! SPANNING TREE
+! ===============================
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+
+! ===============================
+! VLAN CONFIGURATION
+! ===============================
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+vlan 30
+ name IT
+
+! ===============================
+! ACCESS PORTS (IT USERS)
+! ===============================
+
+interface range FastEthernet0/1 - 3
+ description IT_USER_PORTS
+ switchport mode access
+ switchport access vlan 30
+ spanning-tree portfast
+ no shutdown
+
+! ===============================
+! TRUNK PORTS (UPLINKS)
+! ===============================
+
+interface GigabitEthernet0/1
+ description TRUNK_TO_USA-IT_ROUTER
+ switchport mode trunk
+  no shutdown
+
+interface GigabitEthernet0/2
+ description TRUNK_TO_OTHER_SWITCH
+ switchport mode trunk
+  no shutdown
+
+
+! ===============================
+! UNUSED PORTS (SECURITY HARDENING)
+! ===============================
+
+interface range FastEthernet0/4 - 24
+ shutdown
+
+
+=================================================================
+🇬🇧 UK CORE ROUTER (UK-OFFICE)
+=================================================================
+
+hostname UK-OFFICE
+
+! ===============================
+! BASIC SETTINGS
+! ===============================
+no ip cef
+no ipv6 cef
+
+spanning-tree mode pvst
+
+
+! ===============================
+! CORE LINKS (INTERNAL ROUTING)
+! ===============================
+
+interface GigabitEthernet0/0
+ description LINK_TO_UK-HR
+ ip address 192.168.30.1 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/1
+ description LINK_TO_UK-SALES
+ ip address 192.168.30.5 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/2
+ description LINK_TO_UK-IT
+ ip address 192.168.30.9 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+
+! ===============================
+! WAN LINKS (REDUNDANCY)
+! ===============================
+
+interface Serial0/0/0
+ description PRIMARY_WAN_LINK
+ ip address 30.30.100.2 255.255.255.252
+ ip ospf cost 10
+ clock rate 2000000
+ no shutdown
+
+interface Serial0/0/1
+ description BACKUP_WAN_LINK
+ ip address 30.30.100.6 255.255.255.252
+ ip ospf cost 100
+ clock rate 2000000
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION (AREA 2)
+! ===============================
+
+router ospf 1
+ router-id 6.6.6.6
+ log-adjacency-changes
+
+ network 30.30.100.0 0.0.0.3 area 2
+ network 30.30.100.4 0.0.0.3 area 2
+ network 192.168.30.0 0.0.0.3 area 2
+ network 192.168.30.4 0.0.0.3 area 2
+ network 192.168.30.8 0.0.0.3 area 2
+
+=================================================================
+🇬🇧 HR ROUTER (UK-HR)
+=================================================================
+
+hostname UK-HR
+
+! ===============================
+! BASIC SETTINGS
+! ===============================
+ip cef
+no ipv6 cef
+
+spanning-tree mode pvst
+
+
+! ===============================
+! LINK TO CORE (UK-OFFICE)
+! ===============================
+
+interface GigabitEthernet0/0
+ description LINK_TO_UK-OFFICE
+ ip address 192.168.30.2 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+
+! ===============================
+! ROUTER ON A STICK (HR VLAN)
+! ===============================
+
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/1.10
+ description VLAN10_HR_GATEWAY
+ encapsulation dot1Q 10
+ ip address 30.30.10.2 255.255.255.0
+ standby 10 ip 30.30.10.1
+ standby 10 priority 110
+ standby 10 preempt
+
+
+! ===============================
+! ROUTER ON A STICK (SALES VLAN)
+! ===============================
+
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/2.20
+ description VLAN20_SALES_GATEWAY
+ encapsulation dot1Q 20
+ ip address 30.30.20.3 255.255.255.0
+ standby 20 ip 30.30.20.1
+ standby 20 preempt
+
+
+! ===============================
+! OSPF CONFIGURATION (AREA 2)
+! ===============================
+
+router ospf 1
+ router-id 7.7.7.7
+ log-adjacency-changes
+
+ network 192.168.30.0 0.0.0.3 area 2
+ network 30.30.10.0 0.0.0.255 area 2
+ network 30.30.20.0 0.0.0.255 area 2
+
+=================================================================
+🇬🇧 HR ACCESS SWITCH (SW-UK-HR)
+=================================================================
+
+hostname SW-UK-HR
+
+! ===============================
+! SPANNING TREE
+! ===============================
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+
+! ===============================
+! VLAN CONFIGURATION
+! ===============================
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+vlan 30
+ name IT
+
+
+! ===============================
+! ACCESS PORTS (HR USERS)
+! ===============================
+
+interface range FastEthernet0/1 - 3
+ description HR_USER_PORTS
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+ no shutdown
+
+! ===============================
+! TRUNK PORTS (UPLINKS)
+! ===============================
+
+interface GigabitEthernet0/1
+ description TRUNK_TO_UK-HR_ROUTER
+ switchport mode trunk
+ no shutdown
+
+interface GigabitEthernet0/2
+ description TRUNK_TO_OTHER_SWITCH
+ switchport mode trunk
+  no shutdown
+
+
+! ===============================
+! UNUSED PORTS (SECURITY HARDENING)
+! ===============================
+
+interface range FastEthernet0/4 - 24
+ shutdown
+
+
+=================================================================
+🇬🇧 SALES ROUTER (UK-SALES)
+=================================================================
+
+hostname UK-SALES
+
+! ===============================
+! BASIC SETTINGS
+! ===============================
+no ip cef
+no ipv6 cef
+
+spanning-tree mode pvst
+
+
+! ===============================
+! ROUTER ON A STICK (HR VLAN)
+! ===============================
+
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/0.10
+ description VLAN10_HR_GATEWAY
+ encapsulation dot1Q 10
+ ip address 30.30.10.3 255.255.255.0
+ standby 10 ip 30.30.10.1
+ standby 10 priority 100
+
+ standby 10 preempt
+
+
+! ===============================
+! LINK TO CORE (UK-OFFICE)
+! ===============================
+
+interface GigabitEthernet0/1
+ description LINK_TO_UK-OFFICE
+ ip address 192.168.30.6 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+
+! ===============================
+! ROUTER ON A STICK (IT VLAN)
+! ===============================
+
+interface GigabitEthernet0/2
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/2.30
+ description VLAN30_IT_GATEWAY
+ encapsulation dot1Q 30
+ ip address 30.30.30.3 255.255.255.0
+ standby 30 ip 30.30.30.1
+ standby 30 priority 100
+
+ standby 30 preempt
+
+
+! ===============================
+! L3 SVI (SALES VLAN)
+! ===============================
+
+interface Vlan20
+ description VLAN20_SALES_GATEWAY
+ mac-address 0030.f2e5.bd01
+ ip address 30.30.20.2 255.255.255.0
+ standby 20 ip 30.30.20.1
+ standby 20 priority 110
+ standby 20 preempt
+
+
+! ===============================
+! ACCESS PORTS (LOCAL SWITCHING)
+! ===============================
+
+interface FastEthernet0/0/0
+ description SALES_USER_PORT
+ switchport mode access
+ switchport access vlan 20
+
+interface range FastEthernet0/0/1 - 3
+ switchport mode access
+
+
+! ===============================
+! OSPF CONFIGURATION (AREA 2)
+! ===============================
+
+router ospf 1
+ router-id 8.8.8.8
+ log-adjacency-changes
+
+ network 192.168.30.4 0.0.0.3 area 2
+ network 30.30.10.0 0.0.0.255 area 2
+ network 30.30.20.0 0.0.0.255 area 2
+ network 30.30.30.0 0.0.0.255 area 2
+
+=================================================================
+🇬🇧 SALES ACCESS SWITCH (SW-UK-SALES)
+=================================================================
+
+hostname SW-UK-SALES
+
+! ===============================
+! SPANNING TREE
+! ===============================
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+
+! ===============================
+! VLAN CONFIGURATION
+! ===============================
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+vlan 30
+ name IT
+
+
+! ===============================
+! ACCESS PORTS (SALES USERS)
+! ===============================
+
+interface range FastEthernet0/1 - 3
+ description SALES_USER_PORTS
+ switchport mode access
+ switchport access vlan 20
+ spanning-tree portfast
+ no shutdown
+
+! ===============================
+! TRUNK PORTS (UPLINKS)
+! ===============================
+
+interface FastEthernet0/24
+ description TRUNK_TO_ROUTER
+ switchport mode trunk
+ switchport trunk native vlan 20
+ no shutdown
+
+interface GigabitEthernet0/1
+ description TRUNK_TO_CORE_OR_SWITCH
+ switchport mode trunk
+  no shutdown
+
+interface GigabitEthernet0/2
+ description TRUNK_TO_BACKUP_LINK
+ switchport mode trunk
+  no shutdown
+
+
+! ===============================
+! UNUSED PORTS (SECURITY HARDENING)
+! ===============================
+
+interface range FastEthernet0/4 - 23
+ shutdown
+
+
+=================================================================
+🇬🇧 IT ROUTER (UK-IT)
+=================================================================
+
+hostname UK-IT
+
+! ===============================
+! BASIC SETTINGS
+! ===============================
+ip cef
+no ipv6 cef
+
+spanning-tree mode pvst
+
+
+! ===============================
+! ROUTER ON A STICK (SALES VLAN)
+! ===============================
+
+interface GigabitEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/0.20
+ description VLAN20_SALES_GATEWAY
+ encapsulation dot1Q 20
+ ip address 30.30.20.4 255.255.255.0
+ standby 20 ip 30.30.20.1
+ standby 20 priority 90
+ standby 20 preempt
+
+
+! ===============================
+! ROUTER ON A STICK (IT VLAN)
+! ===============================
+
+interface GigabitEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ no shutdown
+
+interface GigabitEthernet0/1.30
+ description VLAN30_IT_GATEWAY
+ encapsulation dot1Q 30
+ ip address 30.30.30.2 255.255.255.0
+ standby 30 ip 30.30.30.1
+ standby 30 priority 110
+ standby 30 preempt
+
+
+! ===============================
+! LINK TO CORE (UK-OFFICE)
+! ===============================
+
+interface GigabitEthernet0/2
+ description LINK_TO_UK-OFFICE
+ ip address 192.168.30.10 255.255.255.252
+ duplex auto
+ speed auto
+ no shutdown
+
+
+! ===============================
+! OSPF CONFIGURATION (AREA 2)
+! ===============================
+
+router ospf 1
+ router-id 9.9.9.9
+ log-adjacency-changes
+
+ network 30.30.20.0 0.0.0.255 area 2
+ network 30.30.30.0 0.0.0.255 area 2
+ network 192.168.30.8 0.0.0.3 area 2
+
+
+
+=================================================================
+🇬🇧 IT ACCESS SWITCH (SW-UK-IT)
+=================================================================
+
+hostname SW-UK-IT
+
+! ===============================
+! SPANNING TREE
+! ===============================
+spanning-tree mode pvst
+spanning-tree extend system-id
+
+
+! ===============================
+! VLAN CONFIGURATION
+! ===============================
+
+vlan 10
+ name HR
+
+vlan 20
+ name SALES
+
+vlan 30
+ name IT
+
+! ===============================
+! ACCESS PORTS (IT USERS)
+! ===============================
+
+interface range FastEthernet0/1 - 3
+ description IT_USER_PORTS
+ switchport mode access
+ switchport access vlan 30
+ spanning-tree portfast
+ no shutdown
+
+! ===============================
+! TRUNK PORTS (UPLINKS)
+! ===============================
+
+interface GigabitEthernet0/1
+ description TRUNK_TO_UK-IT_ROUTER
+ switchport mode trunk
+  no shutdown
+
+interface GigabitEthernet0/2
+ description TRUNK_TO_OTHER_SWITCH
+ switchport mode trunk
+ no shutdown
+
+
+! ===============================
+! UNUSED PORTS (SECURITY HARDENING)
+! ===============================
+
+interface range FastEthernet0/4 - 24
+ shutdown
+
